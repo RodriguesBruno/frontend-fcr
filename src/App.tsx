@@ -10,14 +10,15 @@ import CustomizedSnackbars from './components/MySnackbar';
 import MyDialog, { SaveRule } from './components/MyDialog';
 
 import { v4 as uuidv4 } from 'uuid';
+import { Color } from '@material-ui/lab';
 
-interface Rule {
+export interface Rule {
   id: string;
   fromZone: string;
   toZone: string;
   srcAddr: Data[];
   dstAddr: Data[];
-  services: Data[];
+  service: Data[];
   action: string;
   description: string;
 }
@@ -34,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const snackObj = [
+const snackObj: { severity: Color; message: string }[] = [
   {
     severity: 'error',
     message: 'Error: Rule Already exists'
@@ -73,7 +74,7 @@ const App = () => {
   const [value, setTabValue] = useState(0);
   const [searched, setSearched] = useState('');
   const [edit, setEdit] = useState(false);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const [handleSnack, setHandleSnack] = useState(false)
   const [snackContent, SetSnackContent] = useState<typeof snackObj[0]>()
@@ -160,7 +161,7 @@ const App = () => {
       description,
       srcAddr,
       dstAddr,
-      services,
+      service: services,
     };
 
     if (edit) {
@@ -255,7 +256,7 @@ const App = () => {
         srcAddr: [{ data: genString() }],
         toZone: genString(),
         dstAddr: [{ data: genString() }],
-        services: [{ data: genString() }],
+        service: [{ data: genString() }],
         action: Math.random() < 0.5 ? 'Permit' : 'Deny',
         description: genString(),
       }
@@ -271,7 +272,7 @@ const App = () => {
     setSrcAddr(rule.srcAddr)
     setToZone(rule.toZone)
     setDstAddr(rule.dstAddr)
-    setServices(rule.services)
+    setServices(rule.service)
     setAction(rule.action)
     setDescription(rule.description)
 
@@ -289,7 +290,7 @@ const App = () => {
     setSrcAddr(rule.srcAddr)
     setToZone(rule.toZone)
     setDstAddr(rule.dstAddr)
-    setServices(rule.services)
+    setServices(rule.service)
     setAction(rule.action)
     setDescription(rule.description)
     setTabGroupName('1')
@@ -318,7 +319,7 @@ const App = () => {
       equalsIgnoreOrder(entry.srcAddr, b.srcAddr) &&
       entry.toZone === b.toZone &&
       equalsIgnoreOrder(entry.dstAddr, b.dstAddr) &&
-      equalsIgnoreOrder(entry.services, b.services) &&
+      equalsIgnoreOrder(entry.service, b.service) &&
       entry.action === b.action
     );
 

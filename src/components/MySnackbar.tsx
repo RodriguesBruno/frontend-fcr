@@ -1,12 +1,13 @@
-import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
+import { Color } from '@material-ui/lab';
 
-
-const Alert = (props) => {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
+interface Props {
+  open: boolean;
+  message: string;
+  severity: Color;
+  onClose: () => void;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -18,30 +19,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const MySnackbar = (props) => {
-  const { open, onClose, severity, message } = props
-
-  const classes = useStyles();
-  
-  return (
-    <div className={classes.root}>
-      
-      <Snackbar open={open} autoHideDuration={6000} onClose={onClose}>
-        <Alert onClose={onClose} severity={severity}>
-          {message}
-        </Alert>
-      </Snackbar>
-      
-    </div>
-  );
-}
+const MySnackbar = ({ open, onClose, severity, message }: Props) =>
+  <div className={useStyles().root}>
+    <Snackbar open={open} autoHideDuration={6000} onClose={onClose}>
+      <MuiAlert elevation={6} variant="filled" onClose={onClose} severity={severity}>
+        {message}
+      </MuiAlert>
+    </Snackbar>
+  </div>;
 
 export default MySnackbar;
-
-MySnackbar.propTypes ={
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  severity: PropTypes.string.isRequired,
-  message: PropTypes.string.isRequired
-}
-

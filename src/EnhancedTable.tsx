@@ -23,12 +23,45 @@ import AddCircleIcon from '@material-ui/icons/AddCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import DivRenders from './hoc/DivRenders'
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import { Rule } from './App';
+import { SetState } from './components/MyDialog';
+import { ClassNameMap } from '@material-ui/core/styles/withStyles';
+
+interface HeadProps {
+  classes: ClassNameMap<'visuallyHidden'>
+  order: 'asc' | 'desc';
+  orderBy: keyof Rule;
+  numSelected: number;
+  rowCount: number;
+  onRequestSort: (_: unknown, propName: keyof Rule) => void;
+  onSelectAllClick: (evt: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+interface ToolbarProps {
+  numSelected: number;
+  clickAddNewRule: () => void;
+  clickEdit: (e: React.MouseEvent, ids: string[]) => void;
+  clickCopy: (e: React.MouseEvent, ids: string[]) => void;
+  clickDelete: (e: React.MouseEvent, ids: string[]) => void;
+  selected: string[];
+}
+
+interface Props {
+  rows: Rule[];
+  clickAddNewRule: () => void;
+  clickEdit: (e: React.MouseEvent, ids: string[]) => void;
+  clickCopy: (e: React.MouseEvent, ids: string[]) => void;
+  clickDelete: (e: React.MouseEvent, ids: string[]) => void;
+  selected: string[];
+  setSelected: SetState<string[]>;
+  showRenders: boolean;
+}
 
 const customColumnStyle = { maxWidth: "100px" }
 const customPermitStyle = { marginLeft: '5px', backgroundColor: "green" }
 const customDenyStyle = { marginLeft: '5px', backgroundColor: "darkred" }
 
-function descendingComparator(a, b, orderBy) {
+const descendingComparator = (a: Rule, b: Rule, orderBy: keyof Rule) => {
   if (b[orderBy] < a[orderBy]) {
     return -1;
   }
@@ -38,14 +71,14 @@ function descendingComparator(a, b, orderBy) {
   return 0;
 }
 
-function getComparator(order, orderBy) {
+function getComparator(order: 'asc' | 'desc', orderBy: keyof Rule) {
   return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+    ? (a: Rule, b: Rule) => descendingComparator(a, b, orderBy)
+    : (a: Rule, b: Rule) => -descendingComparator(a, b, orderBy);
 }
 
-function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
+function stableSort(array: Rule[], comparator: (a: Rule, b: Rule) => number) {
+  const stabilizedThis = array.map<[Rule, number]>((el, index) => [el, index]);
 
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -56,57 +89,53 @@ function stableSort(array, comparator) {
   return stabilizedThis.map(([el]) => el);
 }
 
-const headCells = [
+const headCells: { id: keyof Rule; numeric: false; disablePadding: boolean; label: string }[] = [
   { id: 'fromZone', numeric: false, disablePadding: true, label: 'From-Zone' },
   { id: 'srcAddr', numeric: false, disablePadding: false, label: 'Src Add' },
   { id: 'toZone', numeric: false, disablePadding: false, label: 'To-Zone' },
   { id: 'dstAddr', numeric: false, disablePadding: false, label: 'Dst Add' },
-  { id: 'srv', numeric: false, disablePadding: false, label: 'Service' },
+  { id: 'service', numeric: false, disablePadding: false, label: 'Service' },
   { id: 'action', numeric: false, disablePadding: false, label: 'Action' },
   { id: 'description', numeric: false, disablePadding: false, label: 'Description' },
 ];
 
-function EnhancedTableHead(props) {
-  const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
-  const createSortHandler = (property) => (event) => {
+const EnhancedTableHead = ({ classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort }: HeadProps) => {
+  const createSortHandler = (property: keyof Rule) => (event: unknown) =>
     onRequestSort(event, property);
-  };
 
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{ 'aria-label': 'select all desserts' }}
-          />
-        </TableCell>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}
+  return <TableHead>
+    <TableRow>
+      <TableCell padding="checkbox">
+        <Checkbox
+          indeterminate={numSelected > 0 && numSelected < rowCount}
+          checked={rowCount > 0 && numSelected === rowCount}
+          onChange={onSelectAllClick}
+          inputProps={{ 'aria-label': 'select all desserts' }}
+        />
+      </TableCell>
+      {headCells.map((headCell) => (
+        <TableCell
+          key={headCell.id}
+          align={headCell.numeric ? 'right' : 'left'}
+          padding={headCell.disablePadding ? 'none' : 'normal'}
+          sortDirection={orderBy === headCell.id ? order : false}
+        >
+          <TableSortLabel
+            active={orderBy === headCell.id}
+            direction={orderBy === headCell.id ? order : 'asc'}
+            onClick={createSortHandler(headCell.id)}
           >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <span className={classes.visuallyHidden}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                </span>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
+            {headCell.label}
+            {orderBy === headCell.id ? (
+              <span className={classes.visuallyHidden}>
+                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+              </span>
+            ) : null}
+          </TableSortLabel>
+        </TableCell>
+      ))}
+    </TableRow>
+  </TableHead>;
 }
 
 EnhancedTableHead.propTypes = {
@@ -142,69 +171,57 @@ const useToolbarStyles = makeStyles((theme) => ({
   }
 }));
 
-const EnhancedTableToolbar = (props) => {
+const EnhancedTableToolbar = ({ numSelected, clickAddNewRule, clickEdit, clickCopy, clickDelete, selected }: ToolbarProps) => {
   const classes = useToolbarStyles();
 
-  const {
-    numSelected,
-    clickAddNewRule,
-    clickEdit,
-    clickCopy,
-    clickDelete,
-    selected
+  return <Toolbar
+    className={clsx(classes.root, {
+      [classes.highlight]: numSelected > 0,
+    })}
+  >
+    {numSelected > 0 ? (
+      <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
+        {numSelected} selected
+      </Typography>
+    ) : (
+      <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
+        Requested Firewall Rules
+      </Typography>
+    )}
 
-  } = props;
-
-  return (
-    <Toolbar
-      className={clsx(classes.root, {
-        [classes.highlight]: numSelected > 0,
-      })}
-    >
-      {numSelected > 0 ? (
-        <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
-          {numSelected} selected
-        </Typography>
+    {numSelected > 0 && numSelected === 1 ? (
+      <div className={classes.toolbar}>
+        <Tooltip title="Edit">
+          <IconButton aria-label="edit" onClick={(e) => clickEdit(e, selected)}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Copy">
+          <IconButton aria-label="copy" onClick={(e) => clickCopy(e, selected)}>
+            <FileCopyIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete">
+          <IconButton aria-label="delete" onClick={(e) => clickDelete(e, selected)}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </div>
+    ) :
+      numSelected > 0 && numSelected > 1 ? (
+        <Tooltip title="Delete">
+          <IconButton aria-label="delete" onClick={(e) => clickDelete(e, selected)}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
       ) : (
-        <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-          Requested Firewall Rules
-        </Typography>
+        <Tooltip title="Add New Rule">
+          <IconButton aria-label="filter list" onClick={clickAddNewRule}>
+            <AddCircleIcon />
+          </IconButton>
+        </Tooltip>
       )}
-
-      {numSelected > 0 && numSelected === 1 ? (
-        <div className={classes.toolbar}>
-          <Tooltip title="Edit">
-            <IconButton aria-label="edit" onClick={(e) => clickEdit(e, selected)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Copy">
-            <IconButton aria-label="copy" onClick={(e) => clickCopy(e, selected)}>
-              <FileCopyIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton aria-label="delete" onClick={(e) => clickDelete(e, selected)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </div>
-      ) :
-        numSelected > 0 && numSelected > 1 ? (
-          <Tooltip title="Delete">
-            <IconButton aria-label="delete" onClick={(e) => clickDelete(e, selected)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        ) : (
-          <Tooltip title="Add New Rule">
-            <IconButton aria-label="filter list" onClick={clickAddNewRule}>
-              <AddCircleIcon />
-            </IconButton>
-          </Tooltip>
-        )}
-    </Toolbar>
-  );
+  </Toolbar>;
 };
 
 EnhancedTableToolbar.propTypes = {
@@ -236,24 +253,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const EnhancedTable = (props) => {
-  const { rows, clickAddNewRule, clickEdit, clickCopy, clickDelete, selected, setSelected, showRenders } = props;
-
+const EnhancedTable = ({ rows, clickAddNewRule, clickEdit, clickCopy, clickDelete, selected, setSelected, showRenders }: Props) => {
   const classes = useStyles();
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('fromZone');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [orderBy, setOrderBy] = useState<keyof Rule>('fromZone');
   // const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  const [dense, setDense] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const handleRequestSort = (e, property) => {
+  const handleRequestSort = (_: unknown, property: keyof Rule) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
 
-  const handleSelectAllClick = (e) => {
+  const handleSelectAllClick = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       const selection = rows.map((n) => n.id);
       setSelected(selection);
@@ -262,36 +276,20 @@ const EnhancedTable = (props) => {
     setSelected([]);
   };
 
-  const handleClick = (e, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let selection = [];
+  const handleClick = (_: unknown, id: string) =>
+    setSelected(selected.includes(id)
+      ? selected.filter(x => x !== id)
+      : [...selected, id]);
 
-    if (selectedIndex === -1) {
-      selection = selection.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      selection = selection.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      selection = selection.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      selection = selection.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-
-    setSelected(selection);
-  };
-
-  const handleChangePage = (e, newPage) => {
+  const handleChangePage = (_: unknown, newPage: number) =>
     setPage(newPage);
-  };
 
-  const handleChangeRowsPerPage = (e) => {
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
 
-  const isSelected = (name) => selected.indexOf(name) !== -1;
+  const isSelected = (name: string) => selected.includes(name);
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
@@ -311,7 +309,7 @@ const EnhancedTable = (props) => {
           <Table
             className={classes.table}
             aria-labelledby="tableTitle"
-            size={dense ? 'small' : 'medium'}
+            size={'medium'}
             aria-label="enhanced table"
           >
             <EnhancedTableHead
@@ -352,7 +350,7 @@ const EnhancedTable = (props) => {
                       <TableCell align="left" style={customColumnStyle}>{row.srcAddr}</TableCell>
                       <TableCell align="left">{row.toZone}</TableCell>
                       <TableCell align="left" style={customColumnStyle}>{row.dstAddr}</TableCell>
-                      <TableCell align="left" style={customColumnStyle}>{row.srv}</TableCell>
+                      <TableCell align="left" style={customColumnStyle}>{row.service}</TableCell>
                       {row.action === 'Permit' ?
                         <TableCell align="left" >{row.action}<DoneIcon fontSize="small" style={customPermitStyle} /></TableCell>
                         : <TableCell align="left">{row.action}<ClearIcon fontSize="small" style={customDenyStyle} /></TableCell>
@@ -362,7 +360,7 @@ const EnhancedTable = (props) => {
                   );
                 })}
               {emptyRows > 0 && (
-                <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
+                <TableRow style={{ height: 53 * emptyRows }}>
                   <TableCell colSpan={6} />
                 </TableRow>
               )}

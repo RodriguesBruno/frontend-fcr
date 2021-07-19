@@ -1,134 +1,112 @@
 import React from 'react';
+
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import { Container, Draggable } from 'react-smooth-dnd';
+import { Container, Draggable, DropResult } from 'react-smooth-dnd';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper'
 import ClearIcon from '@material-ui/icons/Clear';
+import { SetState } from './MyDialog';
+import { Data } from '../App';
+
+interface Props<T> {
+  items: T[];
+  setItems: SetState<T[]>;
+  groupName: string;
+  behaviour: 'move' | 'copy' | 'drop-zone' | 'contain';
+}
 
 const useStyles = makeStyles(() => ({
-    button: {
-        marginLeft: "5px"
-    },
+  button: {
+    marginLeft: "5px"
+  },
 
 }));
 
-const objectsStyle = {
-    marginTop: "5px",
-    padding: "0.7rem 0.5rem",
-    backgroundColor: "darkgrey",
-    borderRadius: "5px",
-    textAlign: "center",
+const objectsStyle: React.CSSProperties = {
+  marginTop: "5px",
+  padding: "0.7rem 0.5rem",
+  backgroundColor: "darkgrey",
+  borderRadius: "5px",
+  textAlign: "center",
 };
 
-const srvStyle = {
-    marginTop: "5px",
-    padding: "0.7rem 0.5rem",
-    backgroundColor: "#009999",
-    borderRadius: "5px",
-    textAlign: "center",
+const srvStyle: React.CSSProperties = {
+  marginTop: "5px",
+  padding: "0.7rem 0.5rem",
+  backgroundColor: "#009999",
+  borderRadius: "5px",
+  textAlign: "center",
 };
 
-const MyDraggableList = (props) => {
+const MyDraggableList = <T extends Data>({ items, setItems, groupName, behaviour }: Props<T>) => {
+  const classes = useStyles();
 
-    const classes = useStyles();
+  const isBehaviourMove = behaviour === 'move';
 
-    const {
-        items,
-        setItems,
-        groupName,
-        behaviour
-        
-    } = props
+  const applyDrag = (arr: T[], { removedIndex, addedIndex, payload }: DropResult) => {
+    if (removedIndex === null && addedIndex === null) return arr;
 
-    const style = () => {
-        let result
-        if (groupName.indexOf(1)) result = srvStyle 
-        else result = objectsStyle
-        
-        return result
+    const result = [...arr];
+    let itemToAdd: T | undefined = payload;
+
+    if (removedIndex !== null) {
+      [itemToAdd] = result.splice(removedIndex, 1);
     }
 
-    const isBehaviourMove = () => {
-        return behaviour === 'move' ? true : false
+    if (addedIndex !== null && itemToAdd) {
+      result.splice(addedIndex, 0, itemToAdd);
     }
 
-    const applyDrag = (arr, dragResult, removeDuplicates) => {
-        const { removedIndex, addedIndex, payload } = dragResult;
-        if (removedIndex === null && addedIndex === null) return arr;
-    
-        const result = [...arr];
-        let itemToAdd = payload;
-        
-        if (removedIndex !== null) {
-          itemToAdd = result.splice(removedIndex, 1)[0];
-        }
-    
-        if (addedIndex !== null) {
-          result.splice(addedIndex, 0, itemToAdd);
-        }
-        
-        if(removeDuplicates) {
-          const set = new Set(result.map(item => JSON.stringify(item)));
-          const noDup = [...set].map(item => JSON.parse(item));
-    
-          return noDup
-        }
-        else return result;
-    
-      };
+    return result;
+  };
 
-    return (
-        <Container
-            groupName={groupName}
-            behaviour={behaviour}
-            getChildPayload={(i) => items[i]}
-            onDrop={(e) => setItems(applyDrag(items, e, true))}
-            >
-            {items.map((p, i) => {
-                return (
-                <Draggable key={i}>
-                    <Paper elevation={5}>
-                        <div className="draggable-item" style={style()}>
-                            {p.data}
-                            {isBehaviourMove() ?
-                            <Tooltip title={'Remove'} placement="right">
-                                <IconButton 
-                                    aria-label="delete" 
-                                    className={classes.button}
-                                    size="small" 
-                                    onClick={() => {
-                                    const newState = [...items];
-                                    newState.splice(i, 1);
-                                    setItems(newState);
-                                    }}
-                                >
-                                    <ClearIcon fontSize="inherit" />
-                                </IconButton>
-                                
-                            </Tooltip>
-                            : null}
-                        </div>
-                    </Paper>
-                </Draggable>
-                );
-            })}
-        </Container>
-    )
+  return <Container
+    groupName={groupName}
+    behaviour={behaviour}
+    getChildPayload={(i) => items[i]}
+    onDrop={(e) => setItems(applyDrag(items, e))}
+  >
+    {items.map((p, i) => {
+      return <Draggable key={i}>
+        <Paper elevation={5}>
+          <div className="draggable-item" style={groupName.startsWith('1') ? srvStyle : objectsStyle}>
+            {p.data}
+            {isBehaviourMove ?
+              <Tooltip title={'Remove'} placement="right">
+                <IconButton
+                  aria-label="delete"
+                  className={classes.button}
+                  size="small"
+                  onClick={() => {
+                    const newState = [...items];
+                    newState.splice(i, 1);
+                    setItems(newState);
+                  }}
+                >
+                  <ClearIcon fontSize="inherit" />
+                </IconButton>
 
+              </Tooltip>
+              : null}
+          </div>
+        </Paper>
+      </Draggable>;
+    })}
+  </Container>
 }
 
 export default MyDraggableList;
 
 MyDraggableList.propTypes = {
-    items: PropTypes.array.isRequired,
-    setItems: PropTypes.func.isRequired,
-    groupName: PropTypes.string.isRequired,
-    behaviour: PropTypes.string
+  items: PropTypes.array.isRequired,
+  setItems: PropTypes.func.isRequired,
+  groupName: PropTypes.string.isRequired,
+  behaviour: PropTypes.string
 
 };
 
 MyDraggableList.defaultProps = {
-    behaviour: 'move'
+  behaviour: 'move'
 }
