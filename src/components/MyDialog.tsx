@@ -22,7 +22,7 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import MyTextField, { Item } from './MyTextField';
 import MyDraggableList from './MyDraggableList';
 import { TabsTypeMap } from '@material-ui/core/Tabs';
-import { Data, Descriptor } from '../App';
+import { Data } from '../App';
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -35,7 +35,7 @@ interface Props {
   srcAddr: Data[];
   dstAddr: Data[];
   services: Data[];
-  tabItems: Descriptor[];
+  tabItems: Data[];
   toZone: string;
   action: string;
   tabGroupName: string;
@@ -53,7 +53,7 @@ interface Props {
   setDstAddr: SetState<Data[]>;
   setServices: SetState<Data[]>;
   setSrcAddr: SetState<Data[]>;
-  setTabItems: SetState<Descriptor[]>;
+  setTabItems: SetState<Data[]>;
   clearRule: MouseEventHandler<HTMLButtonElement>;
   saveRule: SaveRule;
 }
@@ -141,7 +141,7 @@ const actions = [
   }
 ]
 
-const MyDialog = (props: Props) => {
+export const MyDialog = (props: Props) => {
   const classes = useStyles();
   const {
     showRenders,
@@ -190,19 +190,13 @@ const MyDialog = (props: Props) => {
 
   }
 
-  const isBtnEnabled = () => {
-    if (
-      fromZone &&
-      srcAddr.length &&
-      toZone &&
-      dstAddr.length &&
-      action &&
-      services.length &&
-      description
-    )
-      return false
-    else return true
-  }
+  const isBtnEnabled = !(fromZone &&
+    srcAddr.length &&
+    toZone &&
+    dstAddr.length &&
+    action &&
+    services.length &&
+    description);
 
   return (
     <div>
@@ -382,22 +376,6 @@ const MyDialog = (props: Props) => {
             :
             null}
 
-          {/* <Tooltip title="Generates Ramdom Rule" placement={'top'}>
-                    <span>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            size="small"
-                            className={classes.button}
-                            startIcon={<FileCopyIcon />}
-                            onClick={() => generateRule()}
-                            // disabled={addRule()}
-                        >
-                            Generate Random
-                        </Button>
-                    </span>
-                </Tooltip> */}
-
           <Tooltip title="New Rule based on current: Copies Everything" placement={'top'}>
             <span>
               <Button
@@ -407,8 +385,7 @@ const MyDialog = (props: Props) => {
                 className={classes.button}
                 startIcon={<FileCopyIcon />}
                 onClick={() => saveRule({ copy: true, edit, close: false })}
-                disabled={isBtnEnabled()}
-
+                disabled={isBtnEnabled}
               >
                 Save & Copy to New Rule
               </Button>
@@ -425,7 +402,7 @@ const MyDialog = (props: Props) => {
                 className={classes.button}
                 startIcon={<SaveIcon />}
                 onClick={() => saveRule({ copy: false, edit: edit, close: false })}
-                disabled={isBtnEnabled()}
+                disabled={isBtnEnabled}
 
               >
                 Save & Add New Rule
@@ -442,7 +419,7 @@ const MyDialog = (props: Props) => {
                 className={classes.button}
                 startIcon={<SaveIcon />}
                 onClick={() => saveRule({ copy: false, edit: edit, close: true })}
-                disabled={isBtnEnabled()}
+                disabled={isBtnEnabled}
 
               >
                 Save & Close
@@ -479,6 +456,4 @@ const MyDialog = (props: Props) => {
       </Dialog>
     </div>
   )
-}
-
-export default MyDialog;
+};

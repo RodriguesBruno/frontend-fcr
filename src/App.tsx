@@ -7,7 +7,7 @@ import DivRenders from './hoc/DivRenders'
 import EnhancedTable from './EnhancedTable';
 import Card from "@material-ui/core/Card";
 import CustomizedSnackbars from './components/MySnackbar';
-import MyDialog, { SaveRule } from './components/MyDialog';
+import { MyDialog, SaveRule } from './components/MyDialog';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Color } from '@material-ui/lab';
@@ -24,8 +24,6 @@ export interface Rule {
 }
 
 export interface Data { data: string }
-
-export interface Descriptor extends Data { id: number }
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -56,8 +54,6 @@ const snackObj: { severity: Color; message: string }[] = [
 
 const App = () => {
   const classes = useStyles();
-
-
   const showRenders = true;
   const myuuid = uuidv4();
   const [srcAddr, setSrcAddr] = useState<Data[]>([]);
@@ -111,7 +107,7 @@ const App = () => {
 
   ]);
 
-  const [tabItems, setTabItems] = useState(objectItems);
+  const [tabItems, setTabItems] = useState<Data[]>(objectItems);
 
   const theme = createTheme({
     palette: {

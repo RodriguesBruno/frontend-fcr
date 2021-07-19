@@ -10,9 +10,9 @@ import ClearIcon from '@material-ui/icons/Clear';
 import { SetState } from './MyDialog';
 import { Data } from '../App';
 
-interface Props<T> {
-  items: T[];
-  setItems: SetState<T[]>;
+interface Props {
+  items: Data[];
+  setItems: SetState<Data[]>;
   groupName: string;
   behaviour: 'move' | 'copy' | 'drop-zone' | 'contain';
 }
@@ -40,27 +40,25 @@ const srvStyle: React.CSSProperties = {
   textAlign: "center",
 };
 
-const MyDraggableList = <T extends Data>({ items, setItems, groupName, behaviour }: Props<T>) => {
+const applyDrag = (arr: Data[], { removedIndex, addedIndex, payload }: DropResult) => {
+  if (removedIndex === null && addedIndex === null) return arr;
+
+  const result = [...arr];
+  let itemToAdd: Data | undefined = payload;
+
+  if (removedIndex !== null) {
+    [itemToAdd] = result.splice(removedIndex, 1);
+  }
+
+  if (addedIndex !== null && itemToAdd) {
+    result.splice(addedIndex, 0, itemToAdd);
+  }
+
+  return result;
+};
+
+const MyDraggableList = ({ items, setItems, groupName, behaviour }: Props) => {
   const classes = useStyles();
-
-  const isBehaviourMove = behaviour === 'move';
-
-  const applyDrag = (arr: T[], { removedIndex, addedIndex, payload }: DropResult) => {
-    if (removedIndex === null && addedIndex === null) return arr;
-
-    const result = [...arr];
-    let itemToAdd: T | undefined = payload;
-
-    if (removedIndex !== null) {
-      [itemToAdd] = result.splice(removedIndex, 1);
-    }
-
-    if (addedIndex !== null && itemToAdd) {
-      result.splice(addedIndex, 0, itemToAdd);
-    }
-
-    return result;
-  };
 
   return <Container
     groupName={groupName}
@@ -73,7 +71,7 @@ const MyDraggableList = <T extends Data>({ items, setItems, groupName, behaviour
         <Paper elevation={5}>
           <div className="draggable-item" style={groupName.startsWith('1') ? srvStyle : objectsStyle}>
             {p.data}
-            {isBehaviourMove ?
+            {behaviour === 'move' ?
               <Tooltip title={'Remove'} placement="right">
                 <IconButton
                   aria-label="delete"

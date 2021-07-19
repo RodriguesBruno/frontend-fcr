@@ -347,10 +347,10 @@ const EnhancedTable = ({ rows, clickAddNewRule, clickEdit, clickCopy, clickDelet
                       <TableCell component="th" id={labelId} scope="row" padding="none">
                         {row.fromZone}
                       </TableCell>
-                      <TableCell align="left" style={customColumnStyle}>{row.srcAddr}</TableCell>
+                      <TableCell align="left" style={customColumnStyle}>{row.srcAddr.map(({ data }) => data).join(', ')}</TableCell>
                       <TableCell align="left">{row.toZone}</TableCell>
-                      <TableCell align="left" style={customColumnStyle}>{row.dstAddr}</TableCell>
-                      <TableCell align="left" style={customColumnStyle}>{row.service}</TableCell>
+                      <TableCell align="left" style={customColumnStyle}>{row.dstAddr.map(({ data }) => data).join(', ')}</TableCell>
+                      <TableCell align="left" style={customColumnStyle}>{row.service.map(({ data }) => data).join(', ')}</TableCell>
                       {row.action === 'Permit' ?
                         <TableCell align="left" >{row.action}<DoneIcon fontSize="small" style={customPermitStyle} /></TableCell>
                         : <TableCell align="left">{row.action}<ClearIcon fontSize="small" style={customDenyStyle} /></TableCell>
