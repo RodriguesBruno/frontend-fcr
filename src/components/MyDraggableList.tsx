@@ -69,7 +69,7 @@ const MyDraggableList = ({ items, setItems, groupName, behaviour }: Props) => {
     {items.map((p, i) => {
       return <Draggable key={i}>
         <Paper elevation={5}>
-          <div className="draggable-item" style={groupName.startsWith('1') ? srvStyle : objectsStyle}>
+          <div className="draggable-item" style={groupName.startsWith('1') ? objectsStyle : srvStyle}>
             {p.data}
             {behaviour === 'move' ?
               <Tooltip title={'Remove'} placement="right">
