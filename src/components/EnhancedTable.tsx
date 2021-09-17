@@ -21,10 +21,10 @@ import DoneIcon from '@material-ui/icons/Done';
 import ClearIcon from '@material-ui/icons/Clear';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import EditIcon from '@material-ui/icons/Edit';
-import DivRenders from './hoc/DivRenders'
+import DivRenders from '../hoc/DivRenders'
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import { Rule } from './App';
-import { SetState } from './components/MyDialog';
+import { Rule } from '../App';
+import { SetState } from './MyDialog';
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 
 interface HeadProps {
@@ -60,6 +60,7 @@ interface Props {
 const customColumnStyle = { maxWidth: "100px" }
 const customPermitStyle = { marginLeft: '5px', backgroundColor: "green" }
 const customDenyStyle = { marginLeft: '5px', backgroundColor: "darkred" }
+
 
 const descendingComparator = (a: Rule, b: Rule, orderBy: keyof Rule) => {
   if (b[orderBy] < a[orderBy]) {
@@ -261,6 +262,8 @@ const EnhancedTable = ({ rows, clickAddNewRule, clickEdit, clickCopy, clickDelet
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  console.log(rows)
+
   const handleRequestSort = (_: unknown, property: keyof Rule) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -293,6 +296,7 @@ const EnhancedTable = ({ rows, clickAddNewRule, clickEdit, clickCopy, clickDelet
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
+  
   return (
     <div className={classes.root}>
       <DivRenders showRenders={showRenders} />
@@ -383,7 +387,7 @@ const EnhancedTable = ({ rows, clickAddNewRule, clickEdit, clickCopy, clickDelet
           /> */}
     </div>
   );
-
+        
 }
 
 export default EnhancedTable;

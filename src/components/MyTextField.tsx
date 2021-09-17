@@ -16,7 +16,9 @@ interface Props {
   items: Item[];
 }
 
-const MyTextField = ({ id, label, value, onChange, helperText, items }: Props) =>
+const MyTextField = ({ id, label, value, onChange, helperText, items }: Props) => {
+
+  return (
   <TextField
     id={id}
     select
@@ -32,6 +34,9 @@ const MyTextField = ({ id, label, value, onChange, helperText, items }: Props) =
       </MenuItem>
     ))}
   </TextField>
+  )
+  
+}
 
 export default MyTextField;
 
