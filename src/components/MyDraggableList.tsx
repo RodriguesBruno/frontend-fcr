@@ -3,7 +3,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import { Container, Draggable, DropResult } from 'react-smooth-dnd';
-import Tooltip from '@material-ui/core/Tooltip';
+// import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper'
 import ClearIcon from '@material-ui/icons/Clear';
@@ -15,6 +15,7 @@ interface Props {
   setItems: SetState<Data[]>;
   groupName: string;
   behaviour: 'move' | 'copy' | 'drop-zone' | 'contain';
+  showRenders: boolean;
 }
 
 const useStyles = makeStyles(() => ({
@@ -41,6 +42,7 @@ const srvStyle: React.CSSProperties = {
 };
 
 const applyDrag = (arr: Data[], { removedIndex, addedIndex, payload }: DropResult) => {
+  // const removeDuplicates = true
   if (removedIndex === null && addedIndex === null) return arr;
 
   const result = [...arr];
@@ -53,8 +55,16 @@ const applyDrag = (arr: Data[], { removedIndex, addedIndex, payload }: DropResul
   if (addedIndex !== null && itemToAdd) {
     result.splice(addedIndex, 0, itemToAdd);
   }
+  
+  const set = new Set(result.map(item => JSON.stringify(item)));
+  const noDup = [...set].map(item => JSON.parse(item));
 
-  return result;
+  // console.log('NoDup:', noDup)
+  return noDup
+  
+  
+  // console.log('Result', result)
+  // return result;
 };
 
 const MyDraggableList = ({ items, setItems, groupName, behaviour }: Props) => {
@@ -72,7 +82,7 @@ const MyDraggableList = ({ items, setItems, groupName, behaviour }: Props) => {
           <div className="draggable-item" style={groupName.startsWith('1') ? objectsStyle : srvStyle}>
             {p.data}
             {behaviour === 'move' ?
-              <Tooltip title={'Remove'} placement="right">
+              // <Tooltip title={'Remove'} placement="right">
                 <IconButton
                   aria-label="delete"
                   className={classes.button}
@@ -86,14 +96,16 @@ const MyDraggableList = ({ items, setItems, groupName, behaviour }: Props) => {
                   <ClearIcon fontSize="inherit" />
                 </IconButton>
 
-              </Tooltip>
+              // </Tooltip>
               : null}
           </div>
         </Paper>
       </Draggable>;
     })}
   </Container>
-}
+  }
+  
+
 
 export default MyDraggableList;
 

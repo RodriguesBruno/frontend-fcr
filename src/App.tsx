@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
-import { createTheme, ThemeProvider, makeStyles } from '@material-ui/core/styles';
+import { useState } from 'react';
+import { ThemeProvider, makeStyles } from '@material-ui/core/styles';
+import { unstable_createMuiStrictModeTheme as createTheme } from '@material-ui/core';
 import Switch from '@material-ui/core/Switch';
-// import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import DivRenders from './hoc/DivRenders'
-import EnhancedTable from './EnhancedTable';
+import EnhancedTable from './components/NewEnhancedTable';
+import TextField from '@material-ui/core/TextField';
+// import FormControl from '@material-ui/core/FormControl'
+// import InputLabel from '@material-ui/core/InputLabel'
+// import FormHelperText from '@material-ui/core/FormHelperText'
+// import Input from '@material-ui/core/Input'
 import Card from "@material-ui/core/Card";
+import Paper from '@material-ui/core/Paper'
 import CustomizedSnackbars from './components/MySnackbar';
 import { MyDialog, SaveRule } from './components/MyDialog';
-
 import { v4 as uuidv4 } from 'uuid';
 import { Color } from '@material-ui/lab';
+import DatePicker from './components/DatePicker'
+import MyTextField, {  } from './components/MyTextField';
+
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 export interface Rule {
   id: string;
@@ -23,14 +32,45 @@ export interface Rule {
   description: string;
 }
 
+export interface FCR {
+  id: string;
+  username: string;
+  email: string;
+  date: Date;
+  status: string;
+}
+
+
 export interface Data { data: string }
 
 const useStyles = makeStyles((theme) => ({
   card: {
     marginLeft: theme.spacing(5),
     marginRight: theme.spacing(5),
-
+  },
+  root: {
+    '& .MuiTextField-root': {
+      margin: theme.spacing(1),
+      // margin: theme.spacing(2),
+      // width: '50ch',
+    },
+  },
+  paper: {
+    width: '32ch',
+    marginLeft: theme.spacing(5),
+    marginBottom: theme.spacing(1)
+  },
+  paperLong: {
+    // width: '62ch',
+    // maxWidth: '32ch',
+    marginLeft: theme.spacing(5),
+    marginBottom: theme.spacing(1),
+    // marginRight: theme.spacing(5),
+  },
+  flex: {
+    display: 'flex'
   }
+  
 }));
 
 const snackObj: { severity: Color; message: string }[] = [
@@ -64,13 +104,21 @@ const App = () => {
   const [services, setServices] = useState<Data[]>([]);
   const [id, setId] = useState('')
   const [fromZone, setFromZone] = useState('');
+  const [fcrStatus, setFcrStatus] = useState('DRAFT');
   const [toZone, setToZone] = useState('');
   const [action, setAction] = useState('Permit');
   const [description, setDescription] = useState('');
-  const [value, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(0);
   const [searched, setSearched] = useState('');
   const [edit, setEdit] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  
+  const [reqUsername, setReqUsername] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [business, setBusiness] = useState<string>('');
+
+  // const [text, setText] = useState('');
 
   const [handleSnack, setHandleSnack] = useState(false)
   const [snackContent, SetSnackContent] = useState<typeof snackObj[0]>()
@@ -115,6 +163,7 @@ const App = () => {
     },
   })
 
+
   const zones = [
     {
       value: 'CORPORATE_VRF',
@@ -134,6 +183,30 @@ const App = () => {
     },
   ];
 
+  const FCRState = [
+    {
+      value: 'DRAFT',
+      label: 'DRAFT'
+    },
+    {
+      value: 'SUBMIT',
+      label: 'SUBMIT'
+    },
+    {
+      value: 'ASSIGNED',
+      label: 'ASSIGNED'
+    },
+    {
+      value: 'CLOSED',
+      label: 'CLOSED'
+    },
+    {
+      value: 'CANCELLED',
+      label: 'CANCELLED'
+    }
+
+  ];
+
   const handleTabChange = (_: unknown, newValue: number) => {
     if (newValue === 0) {
       setTabItems(objectItems)
@@ -145,6 +218,12 @@ const App = () => {
     setTabValue(newValue)
     setSearched('');
   };
+
+  const handleDateChange = (date: Date | null) => {
+    setSelectedDate(date);
+  };
+
+
 
   const saveRule: SaveRule = ({ copy, edit, close }) => {
     const myId = edit ? id : myuuid;
@@ -193,9 +272,10 @@ const App = () => {
     }
   }
 
-  const searchObject = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, tabValue: number) => {
-    setTabItems((tabValue === 0 ? objectItems : serviceItems).filter(entry => entry.data.includes(e.target.value)))
-    setSearched(e.target.value)
+  const searchObject = (value: string) => {
+    console.log(tabValue)
+    setTabItems((tabValue === 0 ? objectItems : serviceItems).filter(entry => entry.data.includes(value)))
+    setSearched(value)
   }
 
   const handleClickOpen = () => {
@@ -319,36 +399,141 @@ const App = () => {
       entry.action === b.action
     );
 
-  return <div>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {snackContent && <CustomizedSnackbars
-        open={handleSnack}
-        onClose={() => setHandleSnack(false)}
-        severity={snackContent.severity}
-        message={snackContent.message}
-      />}
-      <DivRenders showRenders={showRenders} title='Hello world!' />
-      <div className={classes.card}>
-        Theme
-        <Switch checked={dark} onChange={() => setDark(!dark)} />
-      </div>
-      <div className={classes.card}>
-        <Card >
-          <EnhancedTable
-            rows={rules}
-            clickAddNewRule={handleClickOpen}
-            clickEdit={clickEdit}
-            clickCopy={clickCopy}
-            clickDelete={clickDelete}
-            selected={selected}
-            setSelected={setSelected}
-            showRenders={showRenders}
-          />
-        </Card>
-      </div>
+  
+  // console.log(rules)
 
-      {/* <Button variant="outlined" color="primary" onClick={handleClickOpen}>
+  return (
+    <div>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {snackContent && <CustomizedSnackbars
+          open={handleSnack}
+          onClose={() => setHandleSnack(false)}
+          severity={snackContent.severity}
+          message={snackContent.message}
+        />}
+        <DivRenders showRenders={showRenders} title='Hello world!' />
+        <div className={classes.card}>
+          Theme
+          <Switch checked={dark} onChange={() => setDark(!dark)} />
+        </div>
+        <div className={classes.root}>
+            
+          
+            <div className={classes.flex}>
+              <Paper className={classes.paper}>
+                <TextField
+                  id="filled-read-only-input"
+                  label="Firewall Change Request"
+                  defaultValue="FCR00000123"
+                  InputProps={{
+                    readOnly: true,
+                    startAdornment: <InputAdornment position="start">#</InputAdornment>,
+                    
+                  }}
+                  // variant="filled"
+                />
+              </Paper>
+
+              <Paper className={classes.paper}>
+                <MyTextField
+                  id={fromZone}
+                  label={'FCR Status'}
+                  value={fcrStatus}
+                  onChange={setFcrStatus}
+                  helperText={'Select FCR Status'}
+                  items={FCRState}
+                />
+              </Paper>
+
+            </div>
+            
+            <div className={classes.flex}>
+              <Paper className={classes.paper}>
+                <TextField
+                  required
+                  id="filled-required"
+                  label="Requestor"
+                  value={reqUsername}
+                  onChange={(e) => setReqUsername(e.target.value)}
+                  // defaultValue=""
+                  helperText="Requestor Username"
+                  // InputProps={{
+                  //   readOnly: true,
+                  // }}
+                  // variant="filled"
+                />
+              
+              </Paper>
+
+              <Paper className={classes.paper}>
+                <TextField
+                    required
+                    id="email-required"
+                    label="Requestor Email"
+                    // defaultValue=""
+                    helperText="Email Address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    // InputProps={{
+                    //   readOnly: true,
+                    // }}
+                    // variant="filled"
+                  />
+              </Paper>
+
+              <Paper className={classes.paper}>
+                <DatePicker
+                  selectedDate={selectedDate}
+                  handleDateChange={handleDateChange}
+                />
+              </Paper>
+            </div>
+            
+            <div className={classes.flex}>
+              <Paper className={classes.paper}>
+                <TextField
+                  required
+                  id="standard-full-width"
+                  label="Business Justification"
+                  multiline
+                  minRows={4}
+                  value={business}
+                  onChange={(e) => setBusiness(e.target.value)}
+                  // value=''
+                  helperText="Please enter description for this request"
+                  // fullWidth
+                  className={classes.card}
+                  // onChange={handleChange}
+                  />
+              </Paper>
+
+              
+
+              
+            </div>
+          
+            
+
+          
+        </div>
+
+        <div className={classes.card}>
+          <Card >
+            <EnhancedTable
+              rows={rules}
+              clickAddNewRule={handleClickOpen}
+              clickEdit={clickEdit}
+              clickCopy={clickCopy}
+              clickDelete={clickDelete}
+              selected={selected}
+              setSelected={setSelected}
+              showRenders={showRenders}
+            />
+          </Card>
+        </div>
+
+        {/* <Button variant="outlined" color="primary" onClick={handleClickOpen}>
           Open max-width dialog
         </Button>
 
@@ -356,44 +541,79 @@ const App = () => {
           CheckRules
         </Button>
 
-        <Button variant="outlined" color="primary" onClick={() => generateRule()}>
+        <Button variant="outlined" color="primary" onClick={() => setNumber(Math.floor(Math.random() * 10))}>
           CreateRandomRule
         </Button> */}
 
-      <MyDialog
-        showRenders={showRenders}
-        open={open}
-        value={value}
-        handleClose={handleClose}
-        handleTabChange={handleTabChange}
-        searched={searched}
-        searchObject={searchObject}
-        fromZone={fromZone}
-        srcAddr={srcAddr}
-        dstAddr={dstAddr}
-        toZone={toZone}
-        action={action}
-        setAction={setAction}
-        setDstAddr={setDstAddr}
-        setToZone={setToZone}
-        zones={zones}
-        description={description}
-        setDescription={setDescription}
-        services={services}
-        setServices={setServices}
-        setFromZone={setFromZone}
-        setSrcAddr={setSrcAddr}
-        saveRule={saveRule}
-        edit={edit}
-        clearRule={clearRule}
-        generateRule={generateRule}
-        tabItems={tabItems}
-        setTabItems={setTabItems}
-        tabGroupName={tabGroupName}
-      />
+        <MyDialog
+          showRenders={showRenders}
+          open={open}
+          tabValue={tabValue}
+          handleClose={handleClose}
+          handleTabChange={handleTabChange}
+          searched={searched}
+          searchObject={searchObject}
+          fromZone={fromZone}
+          srcAddr={srcAddr}
+          dstAddr={dstAddr}
+          toZone={toZone}
+          action={action}
+          setAction={setAction}
+          setDstAddr={setDstAddr}
+          setToZone={setToZone}
+          zones={zones}
+          description={description}
+          setDescription={setDescription}
+          services={services}
+          setServices={setServices}
+          setFromZone={setFromZone}
+          setSrcAddr={setSrcAddr}
+          saveRule={saveRule}
+          edit={edit}
+          clearRule={clearRule}
+          generateRule={generateRule}
+          tabItems={tabItems}
+          setTabItems={setTabItems}
+          tabGroupName={tabGroupName}
+        />
 
-    </ThemeProvider>
-  </div>
+        {/* <MyList getItems={getItems} />
+
+        <MyOtherList description={description} showRenders={showRenders} /> */}
+
+
+        {/* <div>
+          <TextField
+            id="outlined-basic"
+            label="Description"
+            // className={classes.button}
+            size={"medium"}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            // inputProps={{ maxLength: 30 }}
+          />
+        </div> */}
+
+        {/* <div>
+          <div >
+              <SearchIcon />
+          </div>
+          <InputBase
+              placeholder="Filter"
+              
+              inputProps={{ 'aria-label': 'Search' }}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              />
+            
+        </div>
+
+        <MyTest showRenders={showRenders} /> */}
+
+
+      </ThemeProvider>
+    </div>
+  )
 }
 
 export default App;

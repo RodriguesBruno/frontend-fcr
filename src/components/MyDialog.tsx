@@ -27,7 +27,7 @@ import { Data } from '../App';
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface Props {
-  value: number;
+  tabValue: number;
   showRenders: boolean;
   open: boolean;
   searched: string;
@@ -42,7 +42,7 @@ interface Props {
   description: string;
   edit: boolean;
   zones: Item[];
-  searchObject: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, tabValue: number) => void;
+  searchObject: (value: string) => void;
   handleClose: () => void;
   generateRule: () => void;
   handleTabChange: TabsTypeMap['props']['onChange'];
@@ -56,6 +56,7 @@ interface Props {
   setTabItems: SetState<Data[]>;
   clearRule: MouseEventHandler<HTMLButtonElement>;
   saveRule: SaveRule;
+  
 }
 
 export type SaveRule = (options: { copy: boolean; edit: boolean; close: boolean; }) => void;
@@ -122,13 +123,21 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "5px",
     textAlign: "center",
   },
+  listEntry: {
+    padding: 8 * 2
+  },
+  tabsDiv: {
+    marginTop: "5px",
+    padding: "0.7rem 0.5rem",
+    backgroundColor: "#009999",
+    borderRadius: "5px",
+    textAlign: "center",
+  }
+
 
 }));
 
-const TabContainer = ({ children, dir }: TabProps) =>
-  <Typography component="div" dir={dir} style={{ padding: 8 * 2 }}>
-    {children}
-  </Typography>;
+
 
 const actions = [
   {
@@ -142,11 +151,18 @@ const actions = [
 ]
 
 export const MyDialog = (props: Props) => {
+
+  const TabContainer = ({ children, dir }: TabProps) =>
+  <Typography component="div" dir={dir} className={classes.listEntry}>
+    {children}
+  </Typography>;
+
+
   const classes = useStyles();
   const {
     showRenders,
     open,
-    value,
+    tabValue,
     handleClose,
     handleTabChange,
     searched,
@@ -197,7 +213,8 @@ export const MyDialog = (props: Props) => {
     action &&
     services.length &&
     description);
-
+  
+  
   return (
     <div>
       <DivRenders showRenders={showRenders} />
@@ -224,13 +241,13 @@ export const MyDialog = (props: Props) => {
               <DivRenders showRenders={showRenders} />
               <div className={classes.paperDiv}>
                 <div className={classes.genDiv}>
-                  <Tabs value={value} onChange={handleTabChange} aria-label="simple tabs example">
+                  <Tabs value={tabValue} onChange={handleTabChange} aria-label="simple tabs example">
                     <Tab label="Objects" />
                     <Tab label="Services" />
                   </Tabs>
 
                   <Paper className={classes.genDiv}>
-                    <TextField id="standard-basic" label="Search" value={searched} onChange={(e) => searchObject(e, value)} />
+                    <TextField id="standard-basic" label="Search" value={searched} onChange={(e) => searchObject(e.target.value)} />
                   </Paper>
 
                   <TabContainer>
@@ -239,6 +256,7 @@ export const MyDialog = (props: Props) => {
                       setItems={setTabItems}
                       groupName={tabGroupName}
                       behaviour={'copy'}
+                      showRenders={showRenders}
                     />
 
                   </TabContainer>
@@ -274,6 +292,7 @@ export const MyDialog = (props: Props) => {
                     items={srcAddr}
                     setItems={setSrcAddr}
                     groupName={'1'}
+                    showRenders={showRenders}
                   />
                 </div>
                 : null}
@@ -304,6 +323,7 @@ export const MyDialog = (props: Props) => {
                     items={dstAddr}
                     setItems={setDstAddr}
                     groupName={'1'}
+                    showRenders={showRenders}
                   />
 
                 </div>
@@ -330,19 +350,14 @@ export const MyDialog = (props: Props) => {
               {srcAddr.length > 0 && dstAddr.length > 0 ?
                 <div className={classes.paperDiv}>
                   <Tooltip title={'Drag from Services Tab'} placement="bottom">
-                    <div style={{
-                      marginTop: "5px",
-                      padding: "0.7rem 0.5rem",
-                      backgroundColor: "#009999",
-                      borderRadius: "5px",
-                      textAlign: "center",
-                    }}>Service</div>
+                    <div className={classes.tabsDiv}>Service</div>
                   </Tooltip>
 
                   <MyDraggableList
                     items={services}
                     setItems={setServices}
                     groupName={'2'}
+                    showRenders={showRenders}
                   />
 
                 </div>
@@ -456,4 +471,7 @@ export const MyDialog = (props: Props) => {
       </Dialog>
     </div>
   )
+  
+
+  
 };
